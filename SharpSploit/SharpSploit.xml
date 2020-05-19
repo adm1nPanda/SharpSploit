@@ -97,7 +97,7 @@
             at https://github.com/0xbadjuju/Tokenvator).
             </remarks>
         </member>
-        <member name="M:SharpSploit.Credentials.Tokens.#ctor">
+        <member name="M:SharpSploit.Credentials.Tokens.#ctor(System.Boolean)">
             <summary>
             Creates the Tokens class, attempts to obtain the current process' token, and obtain the SeDebugPrivilege.
             </summary>
@@ -1208,6 +1208,27 @@
             <param name="CanLoadFromDisk">Optional, indicates if the function can try to load the DLL from disk if it is not found in the loaded module list.</param>
             <returns>IntPtr for the desired function.</returns>
         </member>
+        <member name="M:SharpSploit.Execution.DynamicInvoke.Generic.GetLibraryAddress(System.String,System.Int16,System.Boolean)">
+            <summary>
+            Helper for getting the pointer to a function from a DLL loaded by the process.
+            </summary>
+            <author>Ruben Boonen (@FuzzySec)</author>
+            <param name="DLLName">The name of the DLL (e.g. "ntdll.dll" or "C:\Windows\System32\ntdll.dll").</param>
+            <param name="Ordinal">Ordinal of the exported procedure.</param>
+            <param name="CanLoadFromDisk">Optional, indicates if the function can try to load the DLL from disk if it is not found in the loaded module list.</param>
+            <returns>IntPtr for the desired function.</returns>
+        </member>
+        <member name="M:SharpSploit.Execution.DynamicInvoke.Generic.GetLibraryAddress(System.String,System.String,System.Int64,System.Boolean)">
+            <summary>
+            Helper for getting the pointer to a function from a DLL loaded by the process.
+            </summary>
+            <author>Ruben Boonen (@FuzzySec)</author>
+            <param name="DLLName">The name of the DLL (e.g. "ntdll.dll" or "C:\Windows\System32\ntdll.dll").</param>
+            <param name="FunctionHash">Hash of the exported procedure.</param>
+            <param name="Key">64-bit integer to initialize the keyed hash object (e.g. 0xabc or 0x1122334455667788).</param>
+            <param name="CanLoadFromDisk">Optional, indicates if the function can try to load the DLL from disk if it is not found in the loaded module list.</param>
+            <returns>IntPtr for the desired function.</returns>
+        </member>
         <member name="M:SharpSploit.Execution.DynamicInvoke.Generic.GetLoadedModuleAddress(System.String)">
             <summary>
             Helper for getting the base address of a module loaded by the current process. This base address could be passed to GetProcAddress/LdrGetProcedureAddress or it could be used for manual export parsing.
@@ -1216,6 +1237,15 @@
             <param name="DLLName">The name of the DLL (e.g. "ntdll.dll").</param>
             <returns>IntPtr base address of the loaded module or IntPtr.Zero if the module is not found.</returns>
         </member>
+        <member name="M:SharpSploit.Execution.DynamicInvoke.Generic.GetAPIHash(System.String,System.Int64)">
+            <summary>
+            Generate an HMAC-MD5 hash of the supplied string using an Int64 as the key. This is useful for unique hash based API lookups.
+            </summary>
+            <author>Ruben Boonen (@FuzzySec)</author>
+            <param name="APIName">API name to hash.</param>
+            <param name="Key">64-bit integer to initialize the keyed hash object (e.g. 0xabc or 0x1122334455667788).</param>
+            <returns>string, the computed MD5 hash value.</returns>
+        </member>
         <member name="M:SharpSploit.Execution.DynamicInvoke.Generic.GetExportAddress(System.IntPtr,System.String)">
             <summary>
             Given a module base address, resolve the address of a function by manually walking the module export table.
@@ -1223,6 +1253,25 @@
             <author>Ruben Boonen (@FuzzySec)</author>
             <param name="ModuleBase">A pointer to the base address where the module is loaded in the current process.</param>
             <param name="ExportName">The name of the export to search for (e.g. "NtAlertResumeThread").</param>
+            <returns>IntPtr for the desired function.</returns>
+        </member>
+        <member name="M:SharpSploit.Execution.DynamicInvoke.Generic.GetExportAddress(System.IntPtr,System.Int16)">
+            <summary>
+            Given a module base address, resolve the address of a function by manually walking the module export table.
+            </summary>
+            <author>Ruben Boonen (@FuzzySec)</author>
+            <param name="ModuleBase">A pointer to the base address where the module is loaded in the current process.</param>
+            <param name="Ordinal">The ordinal number to search for (e.g. 0x136 -> ntdll!NtCreateThreadEx).</param>
+            <returns>IntPtr for the desired function.</returns>
+        </member>
+        <member name="M:SharpSploit.Execution.DynamicInvoke.Generic.GetExportAddress(System.IntPtr,System.String,System.Int64)">
+            <summary>
+            Given a module base address, resolve the address of a function by manually walking the module export table.
+            </summary>
+            <author>Ruben Boonen (@FuzzySec)</author>
+            <param name="ModuleBase">A pointer to the base address where the module is loaded in the current process.</param>
+            <param name="FunctionHash">Hash of the exported procedure.</param>
+            <param name="Key">64-bit integer to initialize the keyed hash object (e.g. 0xabc or 0x1122334455667788).</param>
             <returns>IntPtr for the desired function.</returns>
         </member>
         <member name="T:SharpSploit.Execution.DynamicInvoke.Native">
@@ -1247,8 +1296,8 @@
                 pFunction, typeof(NATIVE_DELEGATES.NtCreateThreadEx));
             
              //  Invoke NtCreateThreadEx using the delegate
-             createThread(ref threadHandle, Execution.Win32.WinNT.ACCESS_MASK.SPECIFIC_RIGHTS_ALL | Execution.Win32.WinNT.ACCESS_MASK.STANDARD_RIGHTS_ALL, IntPtr.Zero,
-                 procHandle, startAddress, IntPtr.Zero, Execution.Win32.NtDll.NT_CREATION_FLAGS.HIDE_FROM_DEBUGGER, 0, 0, 0, IntPtr.Zero);
+             createThread(ref threadHandle, Execute.Win32.WinNT.ACCESS_MASK.SPECIFIC_RIGHTS_ALL | Execute.Win32.WinNT.ACCESS_MASK.STANDARD_RIGHTS_ALL, IntPtr.Zero,
+                 procHandle, startAddress, IntPtr.Zero, Execute.Native.NT_CREATION_FLAGS.HIDE_FROM_DEBUGGER, 0, 0, 0, IntPtr.Zero);
              
              </example>
         </member>
@@ -1272,6 +1321,25 @@
             Uses DynamicInvocation to call the IsWow64Process Win32 API. https://docs.microsoft.com/en-us/windows/win32/api/wow64apiset/nf-wow64apiset-iswow64process
             </summary>
             <returns>Returns true if process is WOW64, and false if not (64-bit, or 32-bit on a 32-bit machine).</returns>
+        </member>
+        <member name="T:SharpSploit.Execution.Native">
+            <summary>
+            Native is a library of enums and structures for Native (NtDll) API functions.
+            </summary>
+            <remarks>
+            A majority of this library is adapted from signatures found at www.pinvoke.net.
+            </remarks>
+        </member>
+        <member name="T:SharpSploit.Execution.Native.NT_CREATION_FLAGS">
+            <summary>
+            NT_CREATION_FLAGS is an undocumented enum. https://processhacker.sourceforge.io/doc/ntpsapi_8h_source.html
+            </summary>
+        </member>
+        <member name="T:SharpSploit.Execution.Native.NTSTATUS">
+            <summary>
+            NTSTATUS is an undocument enum. https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-erref/596a1078-e883-4972-9bbc-49e60bebca55
+            https://www.pinvoke.net/default.aspx/Enums/NtStatus.html
+            </summary>
         </member>
         <member name="T:SharpSploit.Execution.PE">
             <summary>
@@ -1311,6 +1379,32 @@
             <param name="funcName">Name of the function to get a pointer for.</param>
             <returns>Pointer to the function.</returns>
         </member>
+        <member name="M:SharpSploit.Execution.PlatformInvoke.Native.NtCreateThreadEx(System.IntPtr@,SharpSploit.Execution.Win32.WinNT.ACCESS_MASK,System.IntPtr,System.IntPtr,System.IntPtr,System.IntPtr,System.Boolean,System.Int32,System.Int32,System.Int32,System.IntPtr)">
+            <summary>
+            NTCreateThreadEx is an undocumented function. Created by Microsoft to be a universal, cross-session solution
+            for remote thread creation.
+            </summary>
+            <param name="threadHandle"></param>
+            <param name="desiredAccess"></param>
+            <param name="objectAttributes"></param>
+            <param name="processHandle"></param>
+            <param name="startAddress"></param>
+            <param name="parameter"></param>
+            <param name="creationFlags"></param>
+            <param name="stackZeroBits"></param>
+            <param name="sizeOfStack"></param>
+            <param name="maximumStackSize"></param>
+            <param name="attributeList"></param>
+            <returns></returns>
+        </member>
+        <member name="T:SharpSploit.Execution.PlatformInvoke.Win32">
+            <summary>
+            Win32 is a library of PInvoke signatures for Win32 API functions.
+            </summary>
+            <remarks>
+            A majority of this library is adapted from signatures found at www.pinvoke.net.
+            </remarks>
+        </member>
         <member name="T:SharpSploit.Execution.Shell">
             <summary>
             Shell is a library for executing shell commands.
@@ -1331,38 +1425,93 @@
             logging bypass goes to Lee Christensen (@_tifkin).
             </remarks>
         </member>
+        <member name="M:SharpSploit.Execution.Shell.CreateProcess(System.String,System.String,System.String,System.String)">
+            <summary>
+            Creates a specificed process, optionally with an alternative username and password.
+            Equates to `ExecuteWithPath(ShellCommand, Environment.CurrentDirectory, false)`.
+            </summary>
+            <param name="Command">The Command to execute, including any arguments.</param>
+            <param name="Username">Optional alternative username to execute ShellCommand as.</param>
+            <param name="Domain">Optional alternative Domain of the username to execute ShellCommand as.</param>
+            <param name="Password">Optional password to authenticate the username to execute the ShellCommand as.</param>
+            <returns>Output of the created process.</returns>
+        </member>
+        <member name="M:SharpSploit.Execution.Shell.CreateCmdProcess(System.String,System.String,System.String,System.String)">
+            <summary>
+            Creates a specificed process, optionally with an alternative username and password.
+            Equates to `CreateProcess("cmd.exe /c " + ShellCommand)`.
+            </summary>
+            <param name="Command">The Command to execute, including any arguments.</param>
+            <param name="Username">Optional alternative username to execute ShellCommand as.</param>
+            <param name="Domain">Optional alternative Domain of the username to execute ShellCommand as.</param>
+            <param name="Password">Optional password to authenticate the username to execute the ShellCommand as.</param>
+            <returns>Output of the created process.</returns>
+        </member>
         <member name="M:SharpSploit.Execution.Shell.ShellExecute(System.String,System.String,System.String,System.String)">
             <summary>
-            Executes a specified Shell command, optionally with an alternative username and password.
-            Equates to `ShellExecuteWithPath(ShellCommand, "C:\\WINDOWS\\System32")`.
+            Executes a specified shell command, optionally with an alternative username and password.
+            Equates to `ExecuteWithPath(ShellCommand, Environment.CurrentDirectory)`.
             </summary>
             <param name="ShellCommand">The ShellCommand to execute, including any arguments.</param>
             <param name="Username">Optional alternative username to execute ShellCommand as.</param>
             <param name="Domain">Optional alternative Domain of the username to execute ShellCommand as.</param>
             <param name="Password">Optional password to authenticate the username to execute the ShellCommand as.</param>
-            <returns>Ouput of the ShellCommand.</returns>
+            <returns>Empty string, no output is captured when UseShellExecute is true.</returns>
         </member>
         <member name="M:SharpSploit.Execution.Shell.ShellCmdExecute(System.String,System.String,System.String,System.String)">
             <summary>
-            Executes a specified Shell command using cmd.exe, optionally with an alternative username and password.
+            Executes a specified shell command, optionally with an alternative username and password.
             Equates to `ShellExecute("cmd.exe /c " + ShellCommand)`.
             </summary>
             <param name="ShellCommand">The ShellCommand to execute, including any arguments.</param>
             <param name="Username">Optional alternative username to execute ShellCommand as.</param>
             <param name="Domain">Optional alternative Domain of the username to execute ShellCommand as.</param>
             <param name="Password">Optional password to authenticate the username to execute the ShellCommand as.</param>
-            <returns>Ouput of the ShellCommand.</returns>
+            <returns>Empty string, no output is captured when UseShellExecute is true.</returns>
         </member>
-        <member name="M:SharpSploit.Execution.Shell.ShellExecuteWithPath(System.String,System.String,System.String,System.String,System.String)">
+        <member name="M:SharpSploit.Execution.Shell.Execute(System.String,System.Boolean,System.String,System.String,System.String)">
             <summary>
-            Executes a specified Shell command from a specified directory, optionally with an alternative username and password.
+            Executes a specified command, optionally with an alternative username and password.
             </summary>
-            <param name="ShellCommand">The ShellCommand to execute, including any arguments.</param>
-            <param name="Path">The Path of the directory from which to execute the ShellCommand.</param>
+            <param name="Command">The ShellCommand to execute, including any arguments.</param>
+            <param name="UseShellExecute">Switch: true to use ShellExecute, false to use CreateProcess.</param>
             <param name="Username">Optional alternative username to execute ShellCommand as.</param>
             <param name="Domain">Optional alternative Domain of the username to execute ShellCommand as.</param>
             <param name="Password">Optional password to authenticate the username to execute the ShellCommand as.</param>
-            <returns>Output of the ShellCommand.</returns>
+            <returns>Output of the command if UseShellExecute false, empty string if true.</returns>
+        </member>
+        <member name="M:SharpSploit.Execution.Shell.Execute(System.String,System.String,System.Boolean,System.String,System.String,System.String)">
+            <summary>
+            Executes a specified shell command from a specified directory, optionally with an alternative username and password.
+            </summary>
+            <param name="Command">The Command to execute, including any arguments.</param>
+            <param name="Path">The Path of the directory from which to execute the ShellCommand.</param>
+            <param name="UseShellExecute">Switch: true to use ShellExecute, false to use CreateProcess.</param>
+            <param name="Username">Optional alternative username to execute ShellCommand as.</param>
+            <param name="Domain">Optional alternative Domain of the username to execute ShellCommand as.</param>
+            <param name="Password">Optional password to authenticate the username to execute the ShellCommand as.</param>
+            <returns>Output of the command if UseShellExecute false, empty string if true.</returns>
+        </member>
+        <member name="M:SharpSploit.Execution.Shell.CreateProcessWithToken(System.String,System.IntPtr)">
+            <summary>
+            Creates a process with a specified impersonated token. Requires SeAssignPrimaryTokenPrivilege,
+            typically only available to adminsitrative users.
+            </summary>
+            <author>Calvin Hedler (@001SPARTaN)</author>
+            <param name="Command">The Command to execute, including any arguments.</param>
+            <param name="hToken">A handle to the impersonated token.</param>
+            <returns>Output of the created process.</returns>
+        </member>
+        <member name="M:SharpSploit.Execution.Shell.CreateProcessWithToken(System.String,System.String,System.IntPtr)">
+            <summary>
+            Creates a process with a specified impersonated token. Requires SeAssignPrimaryTokenPrivilege,
+            typically only available to adminsitrative users.
+            </summary>
+            <author>Calvin Hedler (@001SPARTaN)</author>
+            <param name="Command">The command to execute, including any arguments.</param>
+            <param name="Path">The path of the directory from which to execute the shell command.</param>
+            <param name="hToken">A handle to the impersonated token.</param>
+            <returns>Output of the created process.</returns>
         </member>
         <member name="T:SharpSploit.Execution.ShellCode">
             <summary>
@@ -1380,40 +1529,11 @@
         </member>
         <member name="T:SharpSploit.Execution.Win32">
             <summary>
-            Win32 is a library of PInvoke signatures for Win32 API functions.
+            Win32 is a library of enums and structures for Win32 API functions.
             </summary>
             <remarks>
             A majority of this library is adapted from signatures found at www.pinvoke.net.
             </remarks>
-        </member>
-        <member name="M:SharpSploit.Execution.Win32.NtDll.NtCreateThreadEx(System.IntPtr@,SharpSploit.Execution.Win32.WinNT.ACCESS_MASK,System.IntPtr,System.IntPtr,System.IntPtr,System.IntPtr,System.Boolean,System.Int32,System.Int32,System.Int32,System.IntPtr)">
-            <summary>
-            NTCreateThreadEx is an undocumented function. Created by Microsoft to be a universal, cross-session solution
-            for remote thread creation.
-            </summary>
-            <param name="threadHandle"></param>
-            <param name="desiredAccess"></param>
-            <param name="objectAttributes"></param>
-            <param name="processHandle"></param>
-            <param name="startAddress"></param>
-            <param name="parameter"></param>
-            <param name="creationFlags"></param>
-            <param name="stackZeroBits"></param>
-            <param name="sizeOfStack"></param>
-            <param name="maximumStackSize"></param>
-            <param name="attributeList"></param>
-            <returns></returns>
-        </member>
-        <member name="T:SharpSploit.Execution.Win32.NtDll.NT_CREATION_FLAGS">
-            <summary>
-            NT_CREATION_FLAGS is an undocumented enum. https://processhacker.sourceforge.io/doc/ntpsapi_8h_source.html
-            </summary>
-        </member>
-        <member name="T:SharpSploit.Execution.Win32.NtDll.NTSTATUS">
-            <summary>
-            NTSTATUS is an undocument enum. https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-erref/596a1078-e883-4972-9bbc-49e60bebca55
-            https://www.pinvoke.net/default.aspx/Enums/NtStatus.html
-            </summary>
         </member>
         <member name="T:SharpSploit.Generic.GenericObjectResult">
             <summary>
@@ -1500,12 +1620,10 @@
             <param name="Domain">Domain for explicit credentials.</param>
             <param name="Username">Username for explicit credentials.</param>
             <param name="Password">Password for explicit credentials.</param>
-            <returns>Bool. True if execution succeeds, false otherwise.</returns>
+            <returns>String. Results of the PowerShell command.</returns>
             <author>Daniel Duggan (@_RastaMouse)</author>
             <remarks>
-            The return value is a little ambigious as the function won't return as long
-            as the command is still running on the remote target. Also, if execution fails
-            (e.g. because bad creds), it doesn't throw an error and it returns true regardless.
+            The function won't return as long as the command is still running on the remote target.
             </remarks>
         </member>
         <member name="T:SharpSploit.LateralMovement.SCM">

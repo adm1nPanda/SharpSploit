@@ -91,8 +91,12 @@
 ### SharpSploit.Execution.Shell
 
 * `PowerShellExecute()` - Executes specified PowerShell code using System.Management.Automation.dll and bypasses AMSI, ScriptBlock Logging, and Module Logging (but not Transcription Logging).
-* `ShellExecute()` - Executes a specified Shell command, optionally with an alternative username and password. Equates to `ShellExecuteWithPath(ShellCommand, "C:\\WINDOWS\\System32")`
-* `ShellExecuteWithPath()` - Executes a specified Shell command from a specified directory, optoinally with an alternative username and password.
+* `CreateProcess()` - Creates a specified process, optionally with an alternative username and password. Uses the CreateProcess API and returns the output of the process.
+* `CreateCmdProcess()` - Creates a specified cmd.exe process, optionally with an alternative username and password. Uses the CreateProcess API and returns the output of the process.
+* `ShellExecute()` - Executes a specified shell command, optionally with an alternative username and password. Uses the ShellExecuteEx API and does not return the output of the command.
+* `ShellCmdExecute()` - Executes a specified cmd.exe shell command, optionally with an alternative username and password. Uses the ShellExecuteEx API and does not return the output of the command.
+* `Execute()` - Executes a specified command, optionally with an alternative username and password. May return the output of the command, depending upon the value of the UseShellExecute parameter.
+* `CreateProcessWithToken()` - Creates a specified process with an impersonated token. Uses the CreateProcessWithToken API and returns the output of the process. (Requires Admin)
 
 ### SharpSploit.Execution.ShellCode
 
@@ -104,11 +108,27 @@ The `SharpSploit.Execution.ShellCode` class includes the following primary funct
 
 ### SharpSploit.Execution.Win32
 
-Win32 contains a large library of PInvoke signatures for Win32 API functions.
+Win32 contains a library of enums and structures for Win32 API functions that can be used with PlatformInvoke or DynamicInvoke function execution.
+
+### SharpSploit.Execution.Native
+
+Native contains a library of enums and structures for Native NT API functions that can be used PlatformInvoke or DynamicInvoke function execution.
+
+## SharpSploit.Execution.PlatformInvoke
+
+The `SharpSploit.Execution.PlatformInvoke` namespace contains classes for invoking unmanaged exported DLL functions from the Win32 API or the Native NT API.
+
+### SharpSploit.Execution.PlatformInvoke.Win32
+
+The `SharpSploit.Execution.PlatformInvoke.Win32` class contains a library of PlatformInvoke signatures for Win32 API functions.
+
+### SharpSploit.Execution.PlatformInvoke.Native
+
+The `SharpSploit.Execution.PlatformInvoke.Native` class contains a library of PlatformInvoke signatures for NT API functions.
 
 ## SharpSploit.Execution.DynamicInvoke
 
-The `SharpSploit.Execution.DynamicInvoke` namespaces contains classes for dynamically invoking unmanaged DLL functions.  Allows the user to call functions in Win32, API, or third-party APIs without using P/Invoke. This avoids suspicious imports and can help evade static analysis tools. It also assists in invoking unmanaged code from function pointers, which can be used to invoke shellcode, exported functions from manually mapped DLLs, or many other use cases.
+The `SharpSploit.Execution.DynamicInvoke` namespace contains classes for dynamically invoking unmanaged DLL functions.  Allows the user to call functions in Win32, API, or third-party APIs without using P/Invoke. This avoids suspicious imports and can help evade static analysis tools. It also assists in invoking unmanaged code from function pointers, which can be used to invoke shellcode, exported functions from manually mapped DLLs, or many other use cases.
 
 Function prototypes for delegates are much less forgiving than P/Invoke. Data types used as parameters must have exactly the same format in memory as the unmanaged function expects, whereas P/Invoke is forgiving and lets you use data types that are close but not the same. There is no existing library of delegates that is verified to be compatable with the Win32 and NT APIs. As such, the library of delegates in SharpSploit will be updated over time as they are discovered, tested, and used by SharpSploit commands.
 
@@ -118,7 +138,7 @@ The `SharpSploit.Execution.DyanmicInvoke.Win32` class contains a library of Dyan
 
 ### SharpSploit.Execution.DynamicInvoke.Native
 
-The `SharpSploit.Execution.DyanmicInvoke.Win32` class contains a library of DyanmicInvoke signatures for NT API functions.
+The `SharpSploit.Execution.DyanmicInvoke.Native` class contains a library of DyanmicInvoke signatures for NT API functions.
 
 ### SharpSploit.Execution.DynamicInvoke.Generic
 
@@ -129,6 +149,7 @@ The `SharpSploit.Execution.DynamicInvoke.Generic` class contains helper function
 * `LoadModuleFromDisk()` - Recolves LdrLoadDll and uses that function to load a DLL from disk.
 * `GetLibraryAddress()` - Helper function that obtains the pointer to a function using in-memory export parsing.
 * `GetLoadedModuleAddress()` - Gets the base address of a module loaded by the current process.
+* `GetAPIHash()` - Gets a HMAC-MD5 hash for unique hash based API lookups.
 * `GetExportAddress()` - Gets the address of an exported function given the base address of a module.
 
 ## SharpSploit.LateralMovement
